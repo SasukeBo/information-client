@@ -1,6 +1,5 @@
-import net from 'net';
+// import net from 'net';
 import tag from 'graphql-tag'
-import config from '@/config.json'
 
 function login(app) {
   app.$apollo.mutate({
@@ -23,14 +22,6 @@ function login(app) {
       type: 'success',
       message: '恭喜！登录成功。'
     })
-    var client = net.createConnection({
-      port: config.cloudServer.port,
-      host: config.cloudServer.host
-    })
-    client.on('connect', () => {
-      client.write('hello')
-    })
-
     app.$router.push({ name: 'main-page' });
     console.log("login success: ", r)
   }).catch(e => {
