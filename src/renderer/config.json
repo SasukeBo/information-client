@@ -1,0 +1,15 @@
+{
+  "graphql": {
+    "host": "127.0.0.1",
+    "port": "",
+    "url": "graphql",
+    "protocol": "http"
+  },
+  "cloudServer": {
+    "host": "localhost",
+    "port": "12290"
+  },
+  "localTCP": {
+    "port": "4476"
+  }
+}
