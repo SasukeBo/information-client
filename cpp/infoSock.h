@@ -13,11 +13,13 @@ namespace INFOSOCK {
 	// message buffer struct, one buffer for one kind value.
 	// lock_1(2) is a lock to buf, while locked by thread, other thread cannot access it.
 	// buf_1(2) is a message with index 1(2), save message to be send.
+	// now is current writeable buffer
 	struct msgBuf {
 		bool lock_1;
 		bool lock_2;
 		string buf_1;
 		string buf_2;
+		int now;
 	};
 
 	// thread function data struct, while create a thread to handle skSend, throw it into the CreateThread function.
@@ -42,6 +44,7 @@ namespace INFOSOCK {
 		int *bufLength = tData->bufLength;
 
 		itr = msgBufMap->begin();
+		string data;
 
 		while (!*tData->stop) {
 			if (itr == msgBufMap->end()) {
@@ -49,33 +52,46 @@ namespace INFOSOCK {
 				continue;
 			}
 
-			if (itr->second.buf_1.length() > *bufLength){
-				while (itr->second.lock_1);
+			switch(itr->second.now) {
+				case 1:
+					if (itr->second.buf_2.length() == 0){
+						itr->second.now = 3 - itr->second.now;
+						itr++;
+						continue;
+					}
 
-				itr->second.lock_1 = true;
-				string data = (string)itr->first;
-				data.append(itr->second.buf_1);
-				send(*socket, data.c_str(), data.length(), 0);
+					while (itr->second.lock_2);
+					itr->second.lock_2 = true;
+					data = (string)itr->first;
+					data.append(itr->second.buf_2);
+					itr->second.buf_2.clear();
+					itr->second.lock_2 = false;
+					break;
 
-				itr->second.buf_1.clear();
-				itr->second.lock_1 = false;
-				itr++;
-				continue;
+				case 2:
+					if (itr->second.buf_1.length() == 0){
+						itr->second.now = 3 - itr->second.now;
+						itr++;
+						continue;
+					}
+
+					while (itr->second.lock_1);
+					itr->second.lock_1 = true;
+					data = (string)itr->first;
+					data.append(itr->second.buf_1);
+					itr->second.buf_1.clear();
+					itr->second.lock_1 = false;
+					break;
 			}
 
-			if (itr->second.buf_2.length() > *bufLength) {
-				while (itr->second.lock_2);
-
-				itr->second.lock_2 = true;
-				string data = (string)itr->first;
-				data.append(itr->second.buf_2);
-				send(*socket, data.c_str(), data.length(), 0);
-
-				itr->second.buf_2.clear();
-				itr->second.lock_2 = false;
-				itr++;
-				continue;
+			if (send(*socket, data.c_str(), data.length(), 0) == SOCKET_ERROR) {
+				printf("[Failed] %s\n", data.c_str());
+			} else {
+				printf("[Success] %s\n", data.c_str());
 			}
+
+			data.clear();
+			itr->second.now = 3 - itr->second.now;
 			itr++;
 		}
 
@@ -156,21 +172,20 @@ namespace INFOSOCK {
 				return 1;
 			}
 
-			if (!itr->second.lock_1) {
-				itr->second.lock_1 = true;
-				itr->second.buf_1.append(";");
-				itr->second.buf_1.append(data);
-				itr->second.lock_1 = false;
-			}
-			else if (!itr->second.lock_2) {
-				itr->second.lock_2 = true;
-				itr->second.buf_2.append(";");
-				itr->second.buf_2.append(data);
-				itr->second.lock_2 = false;
-			}
-			else {
-				printf("field buf not writable, data lost.\n");
-				return -1;
+			switch(itr->second.now) {
+				case 1:
+					while (itr->second.lock_1);
+					itr->second.lock_1 = true;
+					itr->second.buf_1.append(";" + data);
+					itr->second.lock_1 = false;
+					break;
+
+				case 2:
+					while (itr->second.lock_2);
+					itr->second.lock_2 = true;
+					itr->second.buf_2.append(";" + data);
+					itr->second.lock_2 = false;
+					break;
 			}
 			return 0;
 		}
@@ -194,7 +209,7 @@ namespace INFOSOCK {
 
 		// registe message buffer
 		void registerBuf(string fieldName) {
-			msgBufMap.insert(std::pair<string, msgBuf>(fieldName, msgBuf{ false, false, "", "" }));
+			msgBufMap.insert(std::pair<string, msgBuf>(fieldName, msgBuf{ false, false, "", "", 1}));
 			printf("map size %d\n", msgBufMap.size());
 		}
 	};
