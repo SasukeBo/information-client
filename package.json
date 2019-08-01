@@ -14,8 +14,8 @@
     "pack:win32": "cross-env BUILD_TARGET=win32 node .electron-vue/build.js",
     "pack:clean": "cross-env BUILD_TARGET=clean node .electron-vue/build.js",
     "pack:web": "cross-env BUILD_TARGET=web node .electron-vue/build.js",
-    "build:x64": "BUILD_ARCH=ia32 BUILD_TARGET=win32 node .electron-vue/build.js && electron-builder --x64 --win",
-    "build:ia32": "BUILD_ARCH=ia32 BUILD_TARGET=win32 node .electron-vue/build.js && electron-builder --ia32 --win",
+    "build:x64": "cross-env BUILD_ARCH=ia32 BUILD_TARGET=win32 node .electron-vue/build.js && electron-builder --x64 --win",
+    "build:ia32": "cross-env BUILD_ARCH=ia32 BUILD_TARGET=win32 node .electron-vue/build.js && electron-builder --ia32 --win",
     "dev": "node .electron-vue/dev-runner.js",
     "postinstall": "electron-builder install-app-deps"
   },
