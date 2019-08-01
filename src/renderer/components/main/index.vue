@@ -1,7 +1,7 @@
 <template>
   <el-container class="main-page">
     <el-aside width="50px" class="menu">
-      <img src="@/assets/images/256x256.png" class="avatar" />
+      <img src="@/assets/images/fake-avatar.jpg" class="avatar" />
       <i
         class="iconfont icon-net menu-item"
         :class="[$route.name === 'server-page' ? 'is-active' : '']"
@@ -39,11 +39,10 @@ export default {
   }
 
   .avatar {
+    border-radius: 50%;
     width: 40px;
-    padding: 20px 0;
     cursor: pointer;
-    border-bottom: 2px solid #8e8e8e;
-    margin: 0 5px;
+    margin: 20px 5px;
   }
 
   .menu-item {
@@ -66,9 +65,15 @@ export default {
   }
 
   .page-title {
+    font-size: 20px;
+    padding-bottom: 8px;
     font-weight: 600;
     border-bottom: 1px solid;
     line-height: 30px;
+  }
+
+  .page-body {
+    margin: 20px 0;
   }
 }
 </style>

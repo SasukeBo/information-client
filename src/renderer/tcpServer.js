@@ -4,11 +4,28 @@ import client from '@/tcpClient'
 
 var connections = {}
 var logs = []
-const server = net.createServer(socketHandler)
+var server
+
+const tcpServer = {
+  connections,
+  logs,
+  count: 0,
+  server,
+  createServer,
+  port: localTCP.port
+}
+
 
 function socketHandler(sk) {
   sk.on('end', () => {
-    logs.push(`connection closed from ${sk.remoteAddress}:${sk.remotePort}`)
+    var time = new Date();
+    logs.push({
+      status: 'warning',
+      message: `来自 ${sk.remoteAddress} : ${sk.remotePort} 的连接已断开`,
+      time: time.toLocaleString()
+    })
+
+    tcpServer.count--
   })
 
   sk.on('data', (buf) => {
@@ -18,21 +35,53 @@ function socketHandler(sk) {
   })
 
   sk.on('error', (e) => {
-    logs.push(`connection closed from ${sk.remoteAddress}:${sk.remotePort}`)
-    if (e.code !== 'ECONNRESET')
+    var status, message
+    if (e.code !== 'ECONNRESET') {
+      status = 'error'
+      message = e.message
       console.log(e)
+    } else {
+      status = 'warning'
+      message = `来自 ${sk.remoteAddress} : ${sk.remotePort} 的连接已断开`
+    }
+
+    var time = new Date();
+    logs.push({
+      status,
+      message,
+      time: time.toLocaleString()
+    })
+
+    tcpServer.count--
   })
 
   sk.pipe(sk);
 }
 
-server.listen(localTCP.port, '0.0.0.0', () => {
-  logs.push(`open server on ${server.address().address}:${server.address().port}`)
-});
+function createServer() {
+  server = net.createServer(socketHandler)
 
-export default {
-  logs,
-  server,
-  port: localTCP.port,
-  connections
+  server.listen(localTCP.port, '0.0.0.0', () => {
+    var time = new Date();
+    logs.push({
+      status: 'success',
+      message: `TCP服务器正在监听 ${server.address().address} : ${server.address().port}`,
+      time: time.toLocaleString()
+    })
+  })
+
+  server.on('connection', sk => {
+    tcpServer.count++
+    var time = new Date();
+    logs.push({
+      status: 'success',
+      message: `来自 ${sk.remoteAddress} : ${sk.remotePort} 的连接已建立`,
+      time: time.toLocaleString()
+    });
+    tcpServer.connections[`${sk.remoteAddress} : ${sk.remotePort}`] = sk
+  })
+
+  return server
 }
+
+export default tcpServer

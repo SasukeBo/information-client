@@ -1,4 +1,3 @@
-// import net from 'net';
 import tag from 'graphql-tag'
 
 function login(app) {

@@ -24,8 +24,10 @@ function createWindow() {
     resizable: false
   })
 
+  var isMac = process.platform === 'darwin'
+
   var menu = Menu.buildFromTemplate([
-    ...(process.platform === 'darwin' ? [{
+    ...(isMac ? [{
       label: app.getName(),
       submenu: [
         { role: 'about' },
@@ -38,10 +40,48 @@ function createWindow() {
         { type: 'separator' },
         { role: 'quit' }
       ]
-    }] : [])
+    }] : []),
+    {
+      label: '编辑',
+      submenu: [
+        { role: 'copy' },
+        { role: 'paste' },
+        ...(isMac ? [
+          { role: 'pasteAndMatchStyle' },
+          { role: 'delete' },
+          { role: 'selectAll' },
+          { type: 'separator' },
+          {
+            label: 'Speech',
+            submenu: [
+              { role: 'startspeaking' },
+              { role: 'stopspeaking' }
+            ]
+          }
+        ] : [
+            { role: 'delete' },
+            { type: 'separator' },
+            { role: 'selectAll' }
+          ])
+      ]
+    },
+    {
+      label: '开发',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forcereload' },
+        { role: 'toggledevtools' },
+        { type: 'separator' },
+        { role: 'resetzoom' },
+        { role: 'zoomin' },
+        { role: 'zoomout' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' }
+      ]
+    }
   ])
-  // Menu.setApplicationMenu(menu)
-  mainWindow.webContents.openDevTools({ mode: 'detach' })
+
+  Menu.setApplicationMenu(menu)
 
   mainWindow.loadURL(winURL)
 
