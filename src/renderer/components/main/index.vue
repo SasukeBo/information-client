@@ -44,8 +44,8 @@ export default {
   },
 
   mounted() {
-    this.runTCPServer()
-    this.connectToServer()
+    this.runTCPServer();
+    this.connectToServer();
   }
 };
 </script>

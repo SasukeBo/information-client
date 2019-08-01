@@ -1,4 +1,4 @@
-import net from 'net';
+const net = require('net')
 import { localTCP } from '@/config.json'
 import client from '@/tcpClient'
 
@@ -19,7 +19,7 @@ const tcpServer = {
 function socketHandler(sk) {
   sk.on('end', () => {
     var time = new Date();
-    logs.push({
+    logs.unshift({
       status: 'warning',
       message: `来自 ${sk.remoteAddress} : ${sk.remotePort} 的连接已断开`,
       time: time.toLocaleString()
@@ -46,7 +46,7 @@ function socketHandler(sk) {
     }
 
     var time = new Date();
-    logs.push({
+    logs.unshift({
       status,
       message,
       time: time.toLocaleString()
@@ -63,7 +63,7 @@ function createServer() {
 
   server.listen(localTCP.port, '0.0.0.0', () => {
     var time = new Date();
-    logs.push({
+    logs.unshift({
       status: 'success',
       message: `TCP服务器正在监听 ${server.address().address} : ${server.address().port}`,
       time: time.toLocaleString()
@@ -73,12 +73,24 @@ function createServer() {
   server.on('connection', sk => {
     tcpServer.count++
     var time = new Date();
-    logs.push({
+    logs.unshift({
       status: 'success',
       message: `来自 ${sk.remoteAddress} : ${sk.remotePort} 的连接已建立`,
       time: time.toLocaleString()
     });
     tcpServer.connections[`${sk.remoteAddress} : ${sk.remotePort}`] = sk
+  })
+
+  server.on('close', (isErr) => {
+    console.log('close')
+    if (!isErr) {
+      var time = new Date();
+      logs.unshift({
+        status: 'warning',
+        message: `TCP服务器已停止运行`,
+        time: time.toLocaleString()
+      });
+    }
   })
 
   return server

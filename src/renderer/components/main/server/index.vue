@@ -1,4 +1,4 @@
-G<template>
+<template>
   <div class="server">
     <div class="page-title">网络状态</div>
 
@@ -33,7 +33,7 @@ G<template>
             :disabled="clientConnected"
           >连接服务器</el-button>
         </div>
-        <div class="server-logs" ref="tcpClientLogs">
+        <div class="server-logs">
           <div class="log-item" v-for="(l, i) in tcpClientLogs" :key="i">
             <div class="log-time">{{ l.time }}</div>
             <div class="log-message">
@@ -72,7 +72,7 @@ G<template>
             :disabled="serverListening"
           >启动本地服务器</el-button>
         </div>
-        <div class="server-logs" ref="tcpServerLogs">
+        <div class="server-logs">
           <div class="log-item" v-for="(l, i) in tcpServerLogs" :key="i">
             <div class="log-time">{{ l.time }}</div>
             <div class="log-message">
@@ -115,22 +115,6 @@ export default {
     },
     tcpServerStatus() {
       return this.serverListening ? '已运行' : '未运行';
-    }
-  },
-
-  watch: {
-    tcpServerLogs() {
-      var el = this.$refs.tcpServerLogs;
-      setTimeout(() => {
-        el.scrollTo(0, el.scrollHeight);
-      }, 100);
-    },
-
-    tcpClientLogs() {
-      var el = this.$refs.tcpClientLogs;
-      setTimeout(() => {
-        el.scrollTo(0, el.scrollHeight);
-      }, 100);
     }
   },
 
@@ -208,6 +192,10 @@ export default {
       font-size: 14px;
       line-height: 14px;
       padding: 4px 8px;
+
+      &:last-child {
+        margin-bottom: 17px;
+      }
     }
 
     .log-time {
