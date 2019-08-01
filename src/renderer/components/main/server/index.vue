@@ -206,7 +206,7 @@ export default {
     height: calc(100% - 152px);
     scroll-behavior: smooth;
     background: lighten(#21282e, 5%);
-    width: calc(100% - 17px);
+    width: calc(100% + 17px);
 
     .log-item {
       color: #d0d0d0;
