@@ -15,7 +15,8 @@
     "pack:clean": "cross-env BUILD_TARGET=clean node .electron-vue/build.js",
     "pack:web": "cross-env BUILD_TARGET=web node .electron-vue/build.js",
     "build": "node .electron-vue/build.js && electron-builder",
-    "dev": "node .electron-vue/dev-runner.js"
+    "dev": "node .electron-vue/dev-runner.js",
+    "postinstall": "electron-builder install-app-deps"
   },
   "build": {
     "productName": "普创智控设备云客户端",

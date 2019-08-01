@@ -19,13 +19,34 @@
       ></i>
     </el-aside>
     <el-main>
-      <router-view></router-view>
+      <router-view @reconnect="handlerReconn"></router-view>
     </el-main>
   </el-container>
 </template>
 <script>
+import tcpClient from '@/tcpClient';
+import tcpServer from '@/tcpServer';
+
 export default {
-  name: 'main-page'
+  name: 'main-page',
+  methods: {
+    connectToServer() {
+      tcpClient.socket = tcpClient.createClient();
+    },
+
+    runTCPServer() {
+      tcpServer.server = tcpServer.createServer();
+    },
+
+    handlerReconn(func) {
+      this[func]();
+    }
+  },
+
+  mounted() {
+    this.runTCPServer()
+    this.connectToServer()
+  }
 };
 </script>
 <style lang="scss">

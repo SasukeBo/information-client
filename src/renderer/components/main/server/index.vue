@@ -136,17 +136,12 @@ export default {
 
   methods: {
     createClient() {
-      this.tcpClient.socket = tcpClient.createClient();
+      this.$emit('reconnect', 'connectToServer');
     },
 
     createServer() {
-      this.tcpServer.server = tcpServer.createServer();
+      this.$emit('reconnect', 'runTCPServer');
     }
-  },
-
-  mounted() {
-    this.createClient()
-    this.createServer()
   }
 };
 </script>
