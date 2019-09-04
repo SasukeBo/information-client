@@ -11,35 +11,30 @@
         <div style="float: left">
           <div class="data-item">
             <span class="item-label">Port</span>
-            {{ tcpServer.port }}
+            4476
           </div>
           <div class="data-item">
             <span class="item-label">连接数</span>
-            {{ tcpServer.count }}
+            {{ count }}
           </div>
           <div class="data-item">
             <span class="item-label">运行状态</span>
-            <el-tag
-              color="#21282e"
-              size="small"
-              :type="serverListening ? 'success' : 'danger'"
-            >{{ tcpServerStatus }}</el-tag>
+            <el-tag color="#21282e" size="small" :type="'success'">{{ status }}</el-tag>
           </div>
         </div>
         <el-button
           style="float: right"
           type="primary"
-          @click="createServer()"
-          :disabled="serverListening"
+          @click="serverRun"
+          :disabled="['loading', 'listening'].includes(status)"
         >启动本地服务器</el-button>
       </div>
       <div class="server-logs">
         <div class="scroll-logs">
-          <div class="log-item" v-for="(l, i) in tcpServerLogs" :key="i">
-            <div class="log-time">{{ l.time }}</div>
+          <div class="log-item" v-for="(l, i) in logs" :key="i">
             <div class="log-message">
-              <span :class="l.status">[ {{ l.status }} ]</span>
-              {{ l.message }}
+              <span :class="l.status">[{{ l.status.toUpperCase() }}] {{ timeFormatter(l.time) }}&nbsp;&nbsp;</span>
+              <span>{{ l.message }}</span>
             </div>
           </div>
         </div>
@@ -48,28 +43,33 @@
   </div>
 </template>
 <script>
-import tcpServer from '@/tcpServer';
+import { mapState } from 'vuex';
+import { timeFormatter } from '@/utils.js';
 
 export default {
   name: 'server',
   data() {
-    return {
-      tcpServer,
-      tcpServerLogs: tcpServer.logs
-    };
+    return {};
   },
   computed: {
-    serverListening() {
-      return this.tcpServer.server && this.tcpServer.server.listening;
-    },
-    tcpServerStatus() {
-      return this.serverListening ? '已运行' : '未运行';
-    }
+    ...mapState({
+      logs: state => state.Server.logs,
+      status: state => state.Server.status,
+      count: state => state.Device.count
+    })
   },
-
   methods: {
-    createServer() {
-      this.$emit('reconnect', 'runTCPServer');
+    serverRun() {
+      this.$server.Run(() => {
+        this.$store.dispatch('changeStatus', 'loading');
+        this.$store.dispatch('log', {
+          status: 'info',
+          message: 'start server'
+        });
+      });
+    },
+    timeFormatter(time) {
+      return timeFormatter(time, '%y/%m/%d %timestring');
     }
   }
 };
@@ -145,12 +145,8 @@ export default {
       }
     }
 
-    .log-time {
-      padding-bottom: 4px;
-    }
-
     .log-message {
-      width: 400px;
+      margin-right: 17px;
     }
   }
 
@@ -164,6 +160,10 @@ export default {
 
   .error {
     color: $--danger-color;
+  }
+
+  .info {
+    color: $--info-color;
   }
 }
 </style>

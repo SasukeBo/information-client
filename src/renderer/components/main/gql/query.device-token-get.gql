@@ -1,0 +1,15 @@
+query ($token: String!) {
+  device: deviceTokenGet(token: $token) {
+    id
+    uuid
+    name
+    description
+    mac
+    token
+    type
+    params {
+      id
+      sign
+    }
+  }
+}

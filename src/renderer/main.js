@@ -6,17 +6,19 @@ import App from './App'
 import router from './router'
 import store from './store'
 import apolloProvider from './apollo-provider';
+import server from '@/socket-server';
+import websocket from '@/websocket';
 
 import '@/assets/css/app.scss';
 import 'element-ui/lib/theme-chalk/index.css';
 import '@/assets/css/theme/index.css';
 
-// import '@/tcpClient';
-import '@/tcpServer';
-import '@/websocket.js';
 
-if (!process.env.IS_WEB) Vue.use(require('vue-electron'))
-Vue.http = Vue.prototype.$http = axios
+if (!process.env.IS_WEB) Vue.use(require('vue-electron'));
+Vue.http = Vue.prototype.$http = axios;
+Vue.prototype.$server = server;
+Vue.prototype.$websocket = websocket;
+
 Vue.config.productionTip = false
 Vue.use(ElementUI)
 

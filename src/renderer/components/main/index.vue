@@ -18,29 +18,123 @@
         @click="$router.push({path: 'config'})"
       ></i>
     </el-aside>
+
     <el-main>
-      <router-view @reconnect="handlerReconn"></router-view>
+      <router-view></router-view>
     </el-main>
   </el-container>
 </template>
 <script>
-import tcpServer from '@/tcpServer';
+import deviceQuery from './gql/query.device-token-get.gql';
+import { parseGQLError } from '@/utils.js';
 
 export default {
   name: 'main-page',
-  methods: {
-    runTCPServer() {
-      tcpServer.server = tcpServer.createServer();
-    },
-
-    handlerReconn(func) {
-      this[func]();
-    }
+  mounted() {
+    this.registerTCPServer();
+    this.registerSocketCallbacks();
   },
 
-  mounted() {
-    // this.runTCPServer();
-    // this.connectToServer();
+  methods: {
+    registerTCPServer() {
+      this.$server.errorCallback = e => {
+        this.$store.dispatch('changeStatus', 'error');
+        this.$store.dispatch('log', {
+          status: 'error',
+          message: `server error: ${e}`
+        });
+      };
+
+      this.$server.closeCallback = () => {
+        this.$store.dispatch('changeStatus', 'close');
+        this.$store.dispatch('log', {
+          status: 'warning',
+          message: 'server close'
+        });
+      };
+
+      this.$server.listenCallback = port => {
+        this.$store.dispatch('changeStatus', 'listening');
+        this.$store.dispatch('log', {
+          status: 'success',
+          message: `server listen on ${port}`
+        });
+      };
+    },
+    registerSocketCallbacks() {
+      this.$server.onconnect = (token, socket) => {
+        this.$apollo
+          .query({
+            query: deviceQuery,
+            variables: { token }
+          })
+          .then(({ data: { device } }) => {
+            this.$store.dispatch('setDevice', device);
+            socket.deviceID = device.id;
+            this.$store.dispatch('log', {
+              status: 'success',
+              message: `device:[${device.name}] uuid:[${device.uuid}] connected`
+            });
+          })
+          .catch(e => {
+            var err = parseGQLError(e);
+            this.$store.dispatch('log', {
+              status: 'error',
+              message: `${err.message} with token ${token}`
+            });
+          });
+      };
+
+      this.$server.ondisconnect = (_, sk) => {
+        var device = this.$store.getters.getDevice(sk.deviceID);
+        this.$store.dispatch('deleteDevice', sk.deviceID);
+        this.$store.dispatch('log', {
+          status: 'info',
+          message: `device:[${device.name}] uuid:[${device.uuid}] disconnected`
+        });
+      };
+
+      this.$server.ondata = ({ sign, value }, sk) => {
+        var paramID = this.$store.getters.getParamID(sk.deviceID, sign);
+        if (!paramID) return;
+        this.$websocket.send(
+          JSON.stringify({
+            type: 'data',
+            payload: {
+              variables: { topic: `device_param_value:${paramID}` },
+              paramID: `${paramID}`,
+              value
+            }
+          })
+        );
+      };
+
+      this.$server.onstart = sk => {
+        this.$websocket.send(
+          JSON.stringify({
+            type: 'data',
+            payload: {
+              variables: { topic: `device_status_log:${sk.deviceID}` },
+              deviceID: sk.deviceID,
+              value: 'start'
+            }
+          })
+        );
+      };
+
+      this.$server.onstop = sk => {
+        this.$websocket.send(
+          JSON.stringify({
+            type: 'data',
+            payload: {
+              variables: { topic: `device_status_log:${sk.deviceID}` },
+              deviceID: sk.deviceID,
+              value: 'stop'
+            }
+          })
+        );
+      };
+    }
   }
 };
 </script>
