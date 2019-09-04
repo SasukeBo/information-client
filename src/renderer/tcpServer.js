@@ -1,6 +1,6 @@
 const net = require('net')
 import { localTCP } from '@/config.json'
-import client from '@/tcpClient'
+import ws from '@/websocket'
 
 var connections = {}
 var logs = []
@@ -31,7 +31,16 @@ function socketHandler(sk) {
   sk.on('data', (buf) => {
     var data = buf.toString('utf8');
     console.log(data);
-    client.socket.write(data);
+    ws.send(JSON.stringify({
+      type: 'data',
+      payload: {
+        variables: {
+          topic: 'device_param_value:12'
+        },
+        paramID: '12',
+        value: data
+      }
+    }))
   })
 
   sk.on('error', (e) => {
@@ -82,7 +91,6 @@ function createServer() {
   })
 
   server.on('close', (isErr) => {
-    console.log('close')
     if (!isErr) {
       var time = new Date();
       logs.unshift({

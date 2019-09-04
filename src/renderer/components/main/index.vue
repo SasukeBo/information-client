@@ -1,6 +1,6 @@
 <template>
   <el-container class="main-page">
-    <el-aside width="50px" class="menu">
+    <el-aside width="60px" class="menu">
       <img src="@/assets/images/fake-avatar.jpg" class="avatar" />
       <i
         class="iconfont icon-net menu-item"
@@ -24,16 +24,11 @@
   </el-container>
 </template>
 <script>
-import tcpClient from '@/tcpClient';
 import tcpServer from '@/tcpServer';
 
 export default {
   name: 'main-page',
   methods: {
-    connectToServer() {
-      tcpClient.socket = tcpClient.createClient();
-    },
-
     runTCPServer() {
       tcpServer.server = tcpServer.createServer();
     },
@@ -44,26 +39,33 @@ export default {
   },
 
   mounted() {
-    this.runTCPServer();
-    this.connectToServer();
+    // this.runTCPServer();
+    // this.connectToServer();
   }
 };
 </script>
 <style lang="scss">
+@import '@/assets/css/vars.scss';
+
 .main-page {
-  background: lighten(#161b1f, 5%);
+  background: $--background-color;
   height: 100%;
   color: #fff;
+
+  .el-main {
+    padding: 0;
+  }
+
   .menu {
-    background: #161b1f;
-    box-shadow: 2px 0 3px rgba(0, 0, 0, 0.7);
+    background: $--background-color;
+    // box-shadow: 2px 0 16px rgba(0, 0, 0, 0.7);
   }
 
   .avatar {
     border-radius: 50%;
     width: 40px;
     cursor: pointer;
-    margin: 20px 5px;
+    margin: 20px 10px;
   }
 
   .menu-item {
@@ -94,7 +96,12 @@ export default {
   }
 
   .page-body {
+    height: calc(100% - 79px);
     margin: 20px 0;
+  }
+
+  .flex-body {
+    display: flex;
   }
 }
 </style>

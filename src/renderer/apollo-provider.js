@@ -6,11 +6,11 @@ import { HttpLink } from 'apollo-link-http'
 import { InMemoryCache } from 'apollo-cache-inmemory'
 import VueApollo from 'vue-apollo'
 
-import config from '@/config.json'
+// import config from '@/config.json'
 
 const httpLink = new HttpLink({
   fetch: fetch,
-  uri: `${config.graphql.protocol || 'http'}://${config.graphql.host}:${config.graphql.port || '80'}/${config.graphql.url}`
+  uri: `http://localhost:9081/graphql`
 })
 
 // 创建 apollo 客户端
