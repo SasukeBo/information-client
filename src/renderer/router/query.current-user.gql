@@ -1,0 +1,16 @@
+query {
+  currentUser {
+    uuid
+    phone
+    status
+    avatarURL
+    userExtend {
+      name
+      email
+    }
+    role {
+      roleName
+      isAdmin
+    }
+  }
+}

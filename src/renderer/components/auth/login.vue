@@ -33,7 +33,7 @@
             ></el-input>
           </el-form-item>
           <el-form-item>
-            <el-button style="width: 100%" type="primary" @click="submit">登录</el-button>
+            <el-button :loading="loading" style="width: 100%" type="primary" @click="submit">登录</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import gql from './graphql'
+import loginByPassword from './mutation.login-by-password.gql';
 
 export default {
   name: 'landing-page',
@@ -68,6 +68,7 @@ export default {
     };
 
     return {
+      loading: false,
       loginForm: {
         phone: '13242931765',
         password: 'wb1994@'
@@ -81,11 +82,32 @@ export default {
 
   methods: {
     submit() {
+      this.loading = true;
       this.$refs['loginForm'].validate(valid => {
         if (valid) {
-          gql.login(this)
+          this.$apollo
+            .mutate({
+              mutation: loginByPassword,
+              variables: this.loginForm
+            })
+            .then(() => {
+              this.loading = false
+              this.$message({
+                type: 'success',
+                message: '恭喜！登录成功。'
+              });
+              this.$router.push({ name: 'main-page' });
+            })
+            .catch(e => {
+              this.loading = false
+              this.$message({
+                type: 'error',
+                showClose: true,
+                message: e.message
+              });
+            });
         }
-      })
+      });
     }
   }
 };

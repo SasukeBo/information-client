@@ -73,14 +73,14 @@ export default {
             socket.deviceID = device.id;
             this.$store.dispatch('log', {
               status: 'success',
-              message: `device:[${device.name}] uuid:[${device.uuid}] connected`
+              message: `device name:[${device.name}] uuid:[${device.uuid}] connected`
             });
           })
           .catch(e => {
             var err = parseGQLError(e);
             this.$store.dispatch('log', {
               status: 'error',
-              message: `${err.message} with token ${token}`
+              message: `${err.message}, device token:[${token}]`
             });
           });
       };
@@ -90,7 +90,7 @@ export default {
         this.$store.dispatch('deleteDevice', sk.deviceID);
         this.$store.dispatch('log', {
           status: 'info',
-          message: `device:[${device.name}] uuid:[${device.uuid}] disconnected`
+          message: `device name:[${device.name}] uuid:[${device.uuid}] disconnected`
         });
       };
 
@@ -134,6 +134,24 @@ export default {
           })
         );
       };
+
+      this.$server.onclose = sk => {
+        var device = this.$store.getters.getDevice(sk.deviceID);
+        this.$store.dispatch('deleteDevice', sk.deviceID);
+        this.$store.dispatch('log', {
+          status: 'info',
+          message: `device name:[${device.name}] uuid:[${device.uuid}] disconnected`
+        });
+      };
+
+      this.$server.onerror = (sk, e) => {
+        var device = this.$store.getters.getDevice(sk.deviceID);
+        this.$store.dispatch('deleteDevice', sk.deviceID);
+        this.$store.dispatch('log', {
+          status: 'error',
+          message: `device name:[${device.name}] uuid:[${device.uuid}] connection error, ${e.message}`
+        });
+      };
     }
   }
 };
@@ -151,8 +169,8 @@ export default {
   }
 
   .menu {
-    background: $--background-color;
-    // box-shadow: 2px 0 16px rgba(0, 0, 0, 0.7);
+    background: $--background-color_menu;
+    box-shadow: 2px 0px 3px rgba(0, 0, 0, 1);
   }
 
   .avatar {
@@ -172,13 +190,10 @@ export default {
     cursor: pointer;
     transition: all 0.3s ease;
 
-    &:hover {
-      color: #fff;
+    &:hover,
+    &.is-active {
+      color: $--warning-color;
     }
-  }
-
-  .menu-item.is-active {
-    color: #fff;
   }
 
   .page-title {

@@ -26,6 +26,12 @@ const actions = {
     commit('SET_PHONE', payload.phone);
     commit('SET_AVATAR', payload.avatarURL);
     commit('SET_EXTEND', payload.userExtend);
+  },
+  clearUserData({ commit }) {
+    commit('SET_UUID', '');
+    commit('SET_PHONE', '');
+    commit('SET_AVATAR', '');
+    commit('SET_EXTEND', {});
   }
 }
 

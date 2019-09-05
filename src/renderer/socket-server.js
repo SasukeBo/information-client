@@ -37,11 +37,12 @@ export default {
 
       socket.on('close', isError => {
         if (isError) return
-        if (this.onclose) this.onclose();
+        if (this.onclose) this.onclose(socket);
       });
 
       socket.on('error', e => {
-        if (this.onerror) this.onerror(e);
+        if (this.onerror) this.onerror(socket, e);
+
       });
 
       socket.on('data', buf => {
