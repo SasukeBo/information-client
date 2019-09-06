@@ -1,7 +1,7 @@
 var url = ''
 
 if (process.env.NODE_ENV === 'development') {
-  url = 'ws://localhost/websocket'
+  url = 'ws://localhost:9081/websocket'
 } else if (process.env.NODE_ENV === 'production') {
   url = 'ws://info.sasuke.cn/websocket'
 }

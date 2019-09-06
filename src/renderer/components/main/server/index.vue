@@ -58,6 +58,9 @@ export default {
       count: state => state.Device.count
     })
   },
+  mounted() {
+    this.serverRun()
+  },
   methods: {
     serverRun() {
       this.$server.Run(() => {
@@ -122,6 +125,7 @@ export default {
   }
 
   .server-logs {
+    overflow: hidden;
     border-radius: 4px;
     height: calc(100% - 170px);
     scroll-behavior: smooth;

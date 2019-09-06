@@ -10,7 +10,7 @@ import VueApollo from 'vue-apollo'
 
 var uri = ''
 if (process.env.NODE_ENV === 'development') {
-  uri = 'http://localhost/graphql'
+  uri = 'http://localhost:9081/graphql'
 } else if (process.env.NODE_ENV === 'production') {
   uri = 'http://info.sasuke.cn/graphql'
 }

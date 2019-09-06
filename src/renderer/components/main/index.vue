@@ -85,13 +85,13 @@ export default {
           });
       };
 
-      this.$server.ondisconnect = (_, sk) => {
+      this.$server.ondisconnect = (sk) => {
         var device = this.$store.getters.getDevice(sk.deviceID);
-        this.$store.dispatch('deleteDevice', sk.deviceID);
         this.$store.dispatch('log', {
-          status: 'info',
+          status: 'warning',
           message: `device name:[${device.name}] uuid:[${device.uuid}] disconnected`
         });
+        this.$store.dispatch('deleteDevice', sk.deviceID);
       };
 
       this.$server.ondata = ({ sign, value }, sk) => {
@@ -137,7 +137,6 @@ export default {
 
       this.$server.onclose = sk => {
         var device = this.$store.getters.getDevice(sk.deviceID);
-        this.$store.dispatch('deleteDevice', sk.deviceID);
         this.$store.dispatch('log', {
           status: 'info',
           message: `device name:[${device.name}] uuid:[${device.uuid}] disconnected`
@@ -146,7 +145,6 @@ export default {
 
       this.$server.onerror = (sk, e) => {
         var device = this.$store.getters.getDevice(sk.deviceID);
-        this.$store.dispatch('deleteDevice', sk.deviceID);
         this.$store.dispatch('log', {
           status: 'error',
           message: `device name:[${device.name}] uuid:[${device.uuid}] connection error, ${e.message}`

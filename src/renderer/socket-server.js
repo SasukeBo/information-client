@@ -38,11 +38,12 @@ export default {
       socket.on('close', isError => {
         if (isError) return
         if (this.onclose) this.onclose(socket);
+        if (this.ondisconnect) this.ondisconnect(socket);
       });
 
       socket.on('error', e => {
         if (this.onerror) this.onerror(socket, e);
-
+        if (this.ondisconnect) this.ondisconnect(socket);
       });
 
       socket.on('data', buf => {
@@ -56,13 +57,13 @@ export default {
             }
             return;
           }
-          // 断连
-          if (matches = msg.match(/^disconn:(\w+)$/)) {
-            if (matches.length > 1) {
-              if (this.ondisconnect) this.ondisconnect(matches[1], socket);
-            }
-            return;
-          }
+          // // 断连
+          // if (matches = msg.match(/^disconn:(\w+)$/)) {
+            // if (matches.length > 1) {
+              // if (this.ondisconnect) this.ondisconnect(matches[1], socket);
+            // }
+            // return;
+          // }
           // 开始
           if (msg.match(/^start$/)) {
             if (this.onstart) this.onstart(socket);
@@ -74,7 +75,8 @@ export default {
             return
           }
           // 数据接收
-          if (matches = msg.match(/^data:(\w+):(\w+)$/)) {
+          // 数据匹配 浮点数，整数，布尔，字符串类型
+          if (matches = msg.match(/^data:(\w+):([\w\.]+)$/)) {
             if (matches.length > 2) {
               if (this.ondata) this.ondata({
                 sign: matches[1],

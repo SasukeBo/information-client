@@ -38,13 +38,16 @@ const mutations = {
 }
 
 const actions = {
-  setDevice({ commit }, payload) {
+  setDevice({ commit, getters }, payload) {
+    if (getters.getDevice(payload.id)) return;
     commit('SET_DEVICE', payload);
     commit('INC_COUNT');
   },
-  deleteDevice({ commit }, payload) {
-    commit('DELETE_DEVICE', payload);
-    commit('DEC_COUNT');
+  deleteDevice({ commit, getters }, payload) {
+    if (getters.getDevice(payload)) {
+      commit('DELETE_DEVICE', payload);
+      commit('DEC_COUNT');
+    }
   }
 }
 
