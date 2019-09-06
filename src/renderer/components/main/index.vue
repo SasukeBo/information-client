@@ -85,7 +85,7 @@ export default {
           });
       };
 
-      this.$server.ondisconnect = (sk) => {
+      this.$server.ondisconnect = sk => {
         var device = this.$store.getters.getDevice(sk.deviceID);
         this.$store.dispatch('log', {
           status: 'warning',
@@ -101,9 +101,7 @@ export default {
           JSON.stringify({
             type: 'data',
             payload: {
-              variables: { topic: `device_param_value:${paramID}` },
-              paramID: `${paramID}`,
-              value
+              variables: { t: `dpv:${paramID}`, v: value }
             }
           })
         );
@@ -114,9 +112,7 @@ export default {
           JSON.stringify({
             type: 'data',
             payload: {
-              variables: { topic: `device_status_log:${sk.deviceID}` },
-              deviceID: sk.deviceID,
-              value: 'start'
+              variables: { t: `dsl:${sk.deviceID}`, v: 'start' }
             }
           })
         );
@@ -127,9 +123,7 @@ export default {
           JSON.stringify({
             type: 'data',
             payload: {
-              variables: { topic: `device_status_log:${sk.deviceID}` },
-              deviceID: sk.deviceID,
-              value: 'stop'
+              variables: { t: `dsl:${sk.deviceID}`, v: 'stop' }
             }
           })
         );

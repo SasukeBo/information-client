@@ -57,6 +57,7 @@ export default {
             }
             return;
           }
+
           // // 断连
           // if (matches = msg.match(/^disconn:(\w+)$/)) {
             // if (matches.length > 1) {
@@ -64,11 +65,13 @@ export default {
             // }
             // return;
           // }
+
           // 开始
           if (msg.match(/^start$/)) {
             if (this.onstart) this.onstart(socket);
             return;
           }
+
           // 停止
           if (msg.match(/^stop$/)) {
             if (this.onstop) this.onstop(socket);
