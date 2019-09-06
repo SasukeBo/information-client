@@ -5,6 +5,14 @@
 #include <iterator>
 #pragma comment(lib, "Ws2_32.lib")
 
+/*
+	头文件使用文档
+	1. 连接TCP服务器 connectServer
+	2. 注册参数		 registerParam
+	3. 获取线程参数  threadData
+	4. 启动线程执行  skHandler
+	5. 发送数据      sendBuf
+*/
 
 namespace INFOSOCK {
 	using std::map;
@@ -34,8 +42,8 @@ namespace INFOSOCK {
 		int *bufLength;
 	};
 
-	// skSend is a socket sender, it reads message buffer map in a loop, until receive stop signal.
-	DWORD WINAPI skSend(LPVOID lpParam) {
+	// skHandler is a socket message hanlder, it reads message buffer map in a loop, until receive stop signal.
+	DWORD WINAPI skHandler(LPVOID lpParam) {
 		threadData *tData = (threadData *)lpParam;
 
 		map<string, msgBuf>::iterator itr;
@@ -62,8 +70,7 @@ namespace INFOSOCK {
 
 					while (itr->second.lock_2);
 					itr->second.lock_2 = true;
-					data = (string)itr->first;
-					data.append(itr->second.buf_2);
+					data = itr->second.buf_2;
 					itr->second.buf_2.clear();
 					itr->second.lock_2 = false;
 					break;
@@ -77,17 +84,16 @@ namespace INFOSOCK {
 
 					while (itr->second.lock_1);
 					itr->second.lock_1 = true;
-					data = (string)itr->first;
-					data.append(itr->second.buf_1);
+					data = itr->second.buf_1;
 					itr->second.buf_1.clear();
 					itr->second.lock_1 = false;
 					break;
 			}
 
 			if (send(*socket, data.c_str(), data.length(), 0) == SOCKET_ERROR) {
-				printf("[Failed] %s\n", data.c_str());
+				// printf("buf_%d: [Failed] %s\n", itr->second.now, data.c_str());
 			} else {
-				printf("[Success] %s\n", data.c_str());
+				// printf("buf_%d: [Success] %s\n", itr->second.now, data.c_str());
 			}
 
 			data.clear();
@@ -95,7 +101,7 @@ namespace INFOSOCK {
 			itr++;
 		}
 
-		printf("thread stoped\n");
+		// printf("thread stoped\n");
 		return 0;
 	}
 
@@ -111,7 +117,7 @@ namespace INFOSOCK {
 		int getAddrInfo(char* host, char* port) {
 			int iResult = getaddrinfo(host, port, &hints, &result);
 			if (iResult != 0) {
-				printf("getaddrinfo failed: %d\n", iResult);
+				// printf("getaddrinfo failed: %d\n", iResult);
 				WSACleanup();
 				return iResult;
 			}
@@ -123,7 +129,7 @@ namespace INFOSOCK {
 			WSADATA wsaData;
 			int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
 			if (iResult != 0) {
-				printf("WSAStartup failed: %d\n", iResult);
+				// printf("WSAStartup failed: %d\n", iResult);
 			}
 			else {
 				ZeroMemory(&hints, sizeof(hints));
@@ -131,21 +137,21 @@ namespace INFOSOCK {
 				hints.ai_socktype = SOCK_STREAM;
 				hints.ai_protocol = IPPROTO_TCP;
 			}
-			printf("ok, create success\n");
+			// printf("ok, create success\n");
 		}
 
 		// connect the upstream tcp server
-		// params host and port
-		int connectServer(char* host, char* port) {
+		// params host, port, token
+		int connectServer(char* host, char* port, char* token) {
 			if (getAddrInfo(host, port) != 0) {
-				printf("getaddrinfo failed\n");
+				// printf("getaddrinfo failed\n");
 				return 1;
 			}
 			ptr = result;
 			ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
 
 			if (ConnectSocket == INVALID_SOCKET) {
-				printf("Error at socket(): %ld\n", WSAGetLastError());
+				// printf("Error at socket(): %ld\n", WSAGetLastError());
 				freeaddrinfo(result);
 				WSACleanup();
 				return 1;
@@ -155,40 +161,70 @@ namespace INFOSOCK {
 				closesocket(ConnectSocket);
 				ConnectSocket = INVALID_SOCKET;
 				freeaddrinfo(result);
-				printf("Unable to connect to server!\n");
+				// printf("Unable to connect to server!\n");
 				WSACleanup();
 				return 1;
 			}
-			printf("ok, connect success");
+				// printf("ok, connect success\n");
+			string connectMsg = "@connect:" + (string)token;
+			if (send(ConnectSocket, connectMsg.c_str(), connectMsg.length(), 0) == SOCKET_ERROR) {
+				// printf("send connect message failed!");
+				return 1;
+			}
 
 			return 0;
 		}
 
-		int sendBuf(string fieldName, string data) {
-			map<string, msgBuf>::iterator itr;
-			itr = msgBufMap.find(fieldName);
-			if (itr == msgBufMap.end()) {
-				printf("field buf not exist!\n");
+		int sendStart() {
+			string startMsg = "@start";
+			if (send(ConnectSocket, startMsg.c_str(), startMsg.length(), 0) == SOCKET_ERROR) {
+				// printf("send start message failed!");
 				return 1;
 			}
+
+			return 0;
+		}
+
+		int sendStop() {
+			string stopMsg = "@stop";
+			if (send(ConnectSocket, stopMsg.c_str(), stopMsg.length(), 0) == SOCKET_ERROR) {
+				// printf("send stop message failed!");
+				return 1;
+			}
+
+			return 0;
+		}
+
+		int sendBuf(string paramName, string data) {
+			map<string, msgBuf>::iterator itr;
+			itr = msgBufMap.find(paramName);
+			if (itr == msgBufMap.end()) {
+				// printf("field buf not exist!\n");
+				return 1;
+			}
+
+			string message = "@data:" + paramName + ":" + data;
 
 			switch(itr->second.now) {
 				case 1:
 					while (itr->second.lock_1);
 					itr->second.lock_1 = true;
-					itr->second.buf_1.append(";" + data);
+					itr->second.buf_1.append(message);
 					itr->second.lock_1 = false;
 					break;
 
 				case 2:
 					while (itr->second.lock_2);
 					itr->second.lock_2 = true;
-					itr->second.buf_2.append(";" + data);
+					itr->second.buf_2.append(message);
 					itr->second.lock_2 = false;
 					break;
 			}
 			return 0;
 		}
+
+
+
 
 		// get thread function data struct
 		threadData getThreadData(int bufLength) {
@@ -207,10 +243,10 @@ namespace INFOSOCK {
 			return 0;
 		}
 
-		// registe message buffer
-		void registerBuf(string fieldName) {
-			msgBufMap.insert(std::pair<string, msgBuf>(fieldName, msgBuf{ false, false, "", "", 1}));
-			printf("map size %d\n", msgBufMap.size());
+		// registe param
+		void registerParam(string paramName) {
+			msgBufMap.insert(std::pair<string, msgBuf>(paramName, msgBuf{ false, false, "", "", 1 }));
+			// printf("map size %d\n", msgBufMap.size());
 		}
 	};
 }
