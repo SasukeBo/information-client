@@ -75,6 +75,14 @@ export default {
               status: 'success',
               message: `device name:[${device.name}] uuid:[${device.uuid}] connected`
             });
+            this.$client.send(
+              JSON.stringify({
+                type: 'data',
+                payload: {
+                  variables: { t: `dsl:${socket.deviceID}`, v: 'online' }
+                }
+              })
+            );
           })
           .catch(e => {
             var err = parseGQLError(e);
@@ -92,34 +100,43 @@ export default {
           message: `device name:[${device.name}] uuid:[${device.uuid}] disconnected`
         });
         this.$store.dispatch('deleteDevice', sk.deviceID);
+        this.$client.send(
+          JSON.stringify({
+            type: 'data',
+            payload: {
+              variables: { t: `dsl:${sk.deviceID}`, v: 'offline' }
+            }
+          })
+        );
       };
 
       this.$server.ondata = ({ sign, value }, sk) => {
         var paramID = this.$store.getters.getParamID(sk.deviceID, sign);
         if (!paramID) return;
-        this.$websocket.send(
+        var time = new Date().toISOString();
+        this.$client.send(
           JSON.stringify({
             type: 'data',
             payload: {
-              variables: { t: `dpv:${paramID}`, v: value }
+              variables: { t: `dpv:${paramID}`, v: value, time }
             }
           })
         );
       };
 
       this.$server.onstart = sk => {
-        this.$websocket.send(
+        this.$client.send(
           JSON.stringify({
             type: 'data',
             payload: {
-              variables: { t: `dsl:${sk.deviceID}`, v: 'start' }
+              variables: { t: `dsl:${sk.deviceID}`, v: 'prod' }
             }
           })
         );
       };
 
       this.$server.onstop = sk => {
-        this.$websocket.send(
+        this.$client.send(
           JSON.stringify({
             type: 'data',
             payload: {

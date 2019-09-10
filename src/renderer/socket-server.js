@@ -32,8 +32,16 @@ export default {
     return socket => {
       socket.on('ready', () => {
         // 预留
-        console.log('socket ready')
+        console.log('ready event')
       });
+
+      socket.on('end', () => {
+        console.log('end event')
+      });
+
+      socket.on('timeout', () => {
+        console.log('timeout event')
+      })
 
       socket.on('close', isError => {
         if (isError) return
@@ -48,22 +56,25 @@ export default {
 
       socket.on('data', buf => {
         var data = buf.toString('utf8')
-        data.split('@').filter(msg => msg).forEach(msg => {
+        console.log(data)
+        data.split('@').forEach(msg => {
+          if (!msg) return
           var matches
           // 连接信息
           if (matches = msg.match(/^connect:(\w+)$/)) {
             if (matches.length > 1) {
               if (this.onconnect) this.onconnect(matches[1], socket);
+              this.connections[matches[1]] = socket;
             }
             return;
           }
 
           // // 断连
           // if (matches = msg.match(/^disconn:(\w+)$/)) {
-            // if (matches.length > 1) {
-              // if (this.ondisconnect) this.ondisconnect(matches[1], socket);
-            // }
-            // return;
+          // if (matches.length > 1) {
+          // if (this.ondisconnect) this.ondisconnect(matches[1], socket);
+          // }
+          // return;
           // }
 
           // 开始

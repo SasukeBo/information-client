@@ -6,7 +6,10 @@
 
 <script>
   export default {
-    name: 'information-client'
+    name: 'information-client',
+    created() {
+      this.$client.init();
+    }
   }
 </script>
 

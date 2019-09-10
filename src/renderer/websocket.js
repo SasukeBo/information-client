@@ -1,19 +1,38 @@
-var url = ''
-
-if (process.env.NODE_ENV === 'development') {
-  url = 'ws://localhost:9081/websocket'
-} else if (process.env.NODE_ENV === 'production') {
-  url = 'ws://39.108.194.93/websocket'
+const client = {
+  ws: undefined,
+  onmessage: undefined,
+  onopen: undefined,
+  onclose: undefined,
+  url() {
+    if (process.env.NODE_ENV === 'development') {
+      return 'ws://localhost:9081/websocket'
+    } else if (process.env.NODE_ENV === 'production') {
+      return 'ws://39.108.194.93/websocket'
+    }
+  },
+  init() {
+    this.onopen = () => {
+      this.ws.send(JSON.stringify({ type: 'connection_init' }))
+    }
+    this.onclose = () => {
+      setTimeout(() => {
+        this.createWS();
+      }, 1000);
+    }
+    this.onmessage = ({ data }) => {
+      console.log(data)
+    }
+    this.createWS()
+  },
+  createWS() {
+    this.ws = new WebSocket(this.url());
+    this.ws.onclose = this.onclose;
+    this.ws.onmessage = this.onmessage;
+    this.ws.onopen = this.onopen;
+  },
+  send(data) {
+    this.ws.send(data);
+  }
 }
 
-const ws = new WebSocket(url)
-
-ws.onmessage = ({ data }) => {
-  console.log(data)
-}
-
-ws.onopen = () => {
-  ws.send(JSON.stringify({ type: 'connection_init' }))
-}
-
-export default ws
+export default client

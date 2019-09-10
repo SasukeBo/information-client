@@ -58,9 +58,6 @@ export default {
       count: state => state.Device.count
     })
   },
-  mounted() {
-    this.serverRun()
-  },
   methods: {
     serverRun() {
       this.$server.Run(() => {

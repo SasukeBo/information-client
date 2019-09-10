@@ -17,9 +17,9 @@ Vue.http = Vue.prototype.$http = axios;
 Vue.config.productionTip = false
 
 import server from '@/socket-server';
-import websocket from '@/websocket';
+import client from '@/websocket';
 Vue.prototype.$server = server;
-Vue.prototype.$websocket = websocket;
+Vue.prototype.$client = client;
 
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'));
 
