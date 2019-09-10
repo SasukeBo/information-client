@@ -12,7 +12,7 @@ var uri = ''
 if (process.env.NODE_ENV === 'development') {
   uri = 'http://localhost:9081/graphql'
 } else if (process.env.NODE_ENV === 'production') {
-  uri = 'http://39.108.194.93/graphql'
+  uri = 'http://info.protron.com/graphql'
 }
 
 const httpLink = new HttpLink({

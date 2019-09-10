@@ -7,7 +7,8 @@ const client = {
     if (process.env.NODE_ENV === 'development') {
       return 'ws://localhost:9081/websocket'
     } else if (process.env.NODE_ENV === 'production') {
-      return 'ws://39.108.194.93/websocket'
+      // return 'ws://39.108.194.93/websocket'
+      return 'ws://info.protron.cn/websocket'
     }
   },
   init() {
